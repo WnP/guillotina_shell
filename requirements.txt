@@ -1,0 +1,2 @@
+# rev: 831505fa24063bb3f8e1f775f954d281df3cf1a6
+git+https://github.com/guillotinaweb/guillotina_client.git@dev

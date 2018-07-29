@@ -1,5 +1,6 @@
 from pprint import pprint as pp
 
+from requests.exceptions import ConnectionError
 from guillotina_client.client import BasicAuthClient
 from guillotina_client.exceptions import (
     AlreadyExistsException,
@@ -126,5 +127,7 @@ class Gsh(CmdBase):
             print(error + 'Login failed')
         elif isinstance(exception, RefreshTokenFailedException):
             print(error + 'Refresh token failed')
+        elif isinstance(exception, ConnectionError):
+            print(error + 'Connection error')
         else:
             raise exception

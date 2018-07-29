@@ -121,6 +121,7 @@ class Gsh(CmdBase):
         return f'{self.g.server}/{path}'
 
     def do_create(self, arg):
+        '''Create a new child resource by providing json as argument'''
         try:
             res = self.g.post_request(self.current_url, data=arg)
         except Exception as e:
@@ -128,7 +129,8 @@ class Gsh(CmdBase):
         else:
             pp(res)
 
-    def do_patch(self, arg):
+    def do_update(self, arg):
+        '''Update current resource by providing json as argument'''
         try:
             res = self.g.patch_request(self.current_url, data=arg)
         except Exception as e:
@@ -137,6 +139,7 @@ class Gsh(CmdBase):
             pp(res)
 
     def do_delete(self, arg):
+        '''Delete current resource and "cd" to parent'''
         try:
             res = self.g.delete_request(self.current_url)
         except Exception as e:

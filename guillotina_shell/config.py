@@ -23,4 +23,8 @@ parser.add_argument(
     action=env_default('PASSWORD'),
     help='Basic auth password')
 
+parser.add_argument(
+    '-d', '--debug', help='Debug mode', action='store_true')
+parser.set_defaults(debug=False)
+
 config = parser.parse_args()

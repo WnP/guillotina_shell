@@ -1,3 +1,4 @@
+import traceback
 from pprint import pprint as pp
 
 from requests.exceptions import ConnectionError
@@ -23,7 +24,7 @@ class Gsh(CmdBase):
     def __init__(self, config, *args, **kwargs):
         self.g = BasicAuthClient(config.url, config.user, config.password)
         self.path = []
-        self.identchars = self.identchars + '@'
+        self.config = config
         return super().__init__(*args, **kwargs)
 
     def do_cd(self, arg):
@@ -96,7 +97,7 @@ class Gsh(CmdBase):
                 res = self.g.get_request('{}/{}'.format(
                     self.g.server, '/'.join(path)))
             except Exception as e:
-                self.handle_request_exceptions(e)
+                self.handle_exception(e)
             else:
                 pp(res)
 
@@ -123,7 +124,7 @@ class Gsh(CmdBase):
         try:
             res = self.g.post_request(self.current_url, data=arg)
         except Exception as e:
-            self.handle_request_exceptions(e)
+            self.handle_exception(e)
         else:
             pp(res)
 
@@ -131,7 +132,7 @@ class Gsh(CmdBase):
         try:
             res = self.g.patch_request(self.current_url, data=arg)
         except Exception as e:
-            self.handle_request_exceptions(e)
+            self.handle_exception(e)
         else:
             pp(res)
 
@@ -139,12 +140,13 @@ class Gsh(CmdBase):
         try:
             res = self.g.delete_request(self.current_url)
         except Exception as e:
-            self.handle_request_exceptions(e)
+            self.handle_exception(e)
         else:
             self.do_cd('..')
             pp(res)
 
-    def handle_request_exceptions(self, exception):
+    def handle_exception(self, exception):
+        print_trace = False
         if isinstance(exception, AlreadyExistsException):
             print(error + 'Already  exists')
         elif isinstance(exception, NotExistsException):
@@ -152,12 +154,21 @@ class Gsh(CmdBase):
         elif isinstance(exception, UnauthorizedException):
             print(error + 'Unauthorized')
         elif isinstance(exception, RetriableAPIException):
+            print_trace = True
             print(error + 'Retriable API')
         elif isinstance(exception, LoginFailedException):
             print(error + 'Login failed')
         elif isinstance(exception, RefreshTokenFailedException):
             print(error + 'Refresh token failed')
         elif isinstance(exception, ConnectionError):
+            print_trace = True
             print(error + 'Connection error')
         else:
-            raise exception
+            print_trace = True
+        if print_trace:
+            formatted_lines = traceback.format_exc().splitlines()
+            if self.config.debug:
+                for line in formatted_lines:
+                    print(line)
+            else:
+                print(formatted_lines[-1])

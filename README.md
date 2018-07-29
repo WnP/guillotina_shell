@@ -44,6 +44,7 @@ Available commands:
 - `create`: create new resource.
 - `update`: update resource.
 - `delete`: delete resource.
+- `endpoint`: query resource endpoints.
 
 ## Contribute
 

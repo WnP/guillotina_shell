@@ -83,7 +83,7 @@ class Gsh(CmdBase):
 
     def do_cd(self, arg):
         '''Change directory by navigating thru the resource tree'''
-        args = cd_parser.add_argument(shlex.split(arg))
+        args = cd_parser.parse_args(shlex.split(arg))
         if args is None:
             return
         if not args.path or args.path == '/':

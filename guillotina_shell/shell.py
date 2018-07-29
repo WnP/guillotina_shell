@@ -16,7 +16,14 @@ from guillotina_client.exceptions import (
 
 from .cmd_base import CmdBase
 from .node import Node
-from .parsers import endpoint_parser
+from .parsers import (
+    cd_parser,
+    ls_parser,
+    endpoint_parser,
+    create_parser,
+    update_parser,
+    delete_parser,
+)
 
 
 def join(*args):
@@ -76,11 +83,14 @@ class Gsh(CmdBase):
 
     def do_cd(self, arg):
         '''Change directory by navigating thru the resource tree'''
-        if not arg or arg == '/':
-            self.prompt = 'gsh> '.format(arg)
+        args = cd_parser.add_argument(shlex.split(arg))
+        if args is None:
+            return
+        if not args.path or args.path == '/':
+            self.prompt = 'gsh> '.format(args.path)
             self.path = []
         else:
-            path_ = [p for p in arg.split('/') if p]
+            path_ = [p for p in args.path.split('/') if p]
             path = []
             for p in path_:
                 if p == '..':
@@ -91,7 +101,7 @@ class Gsh(CmdBase):
                 elif p != '.':
                     path.append(p)
 
-            if arg.startswith('/'):
+            if args.path.startswith('/'):
                 self.path = path
             else:
                 self.path.extend(path)
@@ -103,6 +113,9 @@ class Gsh(CmdBase):
         else:
             self.current = None
             self.prompt = 'gsh> '
+
+    def help_cd(self):
+        cd_parser.print_help()
 
     def complete_cd(self, text, line, begidx, endidx):
         sl = line.split()
@@ -134,7 +147,10 @@ class Gsh(CmdBase):
 
     def do_ls(self, arg):
         '''Display current resource tree node'''
-        if arg == '@addons':
+        args = ls_parser.parse_args(shlex.split(arg))
+        if args is None:
+            return
+        if args.path == '@addons':
             if len(self.path) < 2:
                 self.print_error('Not a container path')
             else:
@@ -142,7 +158,7 @@ class Gsh(CmdBase):
                 pp(self.g.container.list_addons())
         else:
             path = self.path[:]
-            path.extend(arg.split('/'))
+            path.extend(args.path.split('/'))
             try:
                 res = self.g.get_request('{}/{}'.format(
                     self.g.server, join(*path)))
@@ -150,6 +166,9 @@ class Gsh(CmdBase):
                 self.handle_exception(e)
             else:
                 pp(res)
+
+    def help_ls(self):
+        ls_parser.print_help()
 
     def complete_ls(self, text, line, begidx, endidx):
         # FIXME:
@@ -166,24 +185,39 @@ class Gsh(CmdBase):
 
     def do_create(self, arg):
         '''Create a new child resource by providing json as argument'''
+        args = create_parser.parse_args(shlex.split(arg))
+        if args is None:
+            return
         try:
-            res = self.g.post_request(self.current_url, data=arg)
+            res = self.g.post_request(self.current_url, data=args.data)
         except Exception as e:
             self.handle_exception(e)
         else:
             pp(res)
+
+    def help_create(self):
+        create_parser.print_help()
 
     def do_update(self, arg):
         '''Update current resource by providing json as argument'''
+        args = update_parser.parse_args(shlex.split(arg))
+        if args is None:
+            return
         try:
-            res = self.g.patch_request(self.current_url, data=arg)
+            res = self.g.patch_request(self.current_url, data=args.data)
         except Exception as e:
             self.handle_exception(e)
         else:
             pp(res)
 
+    def help_update(self):
+        update_parser.print_help()
+
     def do_delete(self, arg):
         '''Delete current resource and "cd" to parent'''
+        args = update_parser.parse_args(shlex.split(arg))
+        if args is None:
+            return
         try:
             res = self.g.delete_request(self.current_url)
         except Exception as e:
@@ -191,6 +225,9 @@ class Gsh(CmdBase):
         else:
             self.do_cd('..')
             pp(res)
+
+    def help_delete(self):
+        delete_parser.print_help()
 
     def do_endpoint(self, arg):
         args = endpoint_parser.parse_args(shlex.split(arg))

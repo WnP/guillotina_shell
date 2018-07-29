@@ -3,6 +3,7 @@ from pprint import pprint as pp
 
 from requests.exceptions import ConnectionError
 from guillotina_client.client import BasicAuthClient
+from guillotina_client.api import Resource
 from guillotina_client.exceptions import (
     AlreadyExistsException,
     NotExistsException,
@@ -13,6 +14,7 @@ from guillotina_client.exceptions import (
 )
 
 from .cmd_base import CmdBase
+from .node import Node
 
 error = '\033[0;31mError\033[0m: '
 
@@ -25,7 +27,40 @@ class Gsh(CmdBase):
         self.g = BasicAuthClient(config.url, config.user, config.password)
         self.path = []
         self.config = config
+        self.current = None
+        self.ids = []
+        self.get_current()
         return super().__init__(*args, **kwargs)
+
+    def get_current(self):
+        if len(self.path) <= 2:
+            try:
+                self.current = Node(self.current_url, self.g)
+            except NotExistsException:
+                print(
+                    error + 'Please install guillotina-swagger onto your '
+                    'application in order to improve your user experience')
+            except Exception as e:
+                self.handle_exception(e)
+        if len(self.path) > 2:
+            try:
+                self.current = Resource(self.current_url, self.g)
+            except NotExistsException:
+                print(
+                    error + 'Please install guillotina-swagger onto your '
+                    'application in order to improve your user experience')
+            except Exception as e:
+                self.handle_exception(e)
+
+    def get_ids(self):
+        if self.current and '@ids' in self.current.endpoints:
+            try:
+                ids = self.g.get_request('{}/{}/{}'.format(
+                    self.g.server, '/'.join(self.path), '@ids'))
+            except Exception:  # noqa
+                self.ids = []
+            else:
+                self.ids = ids
 
     def do_cd(self, arg):
         '''Change directory by navigating thru the resource tree'''
@@ -50,8 +85,11 @@ class Gsh(CmdBase):
                 self.path.extend(path)
 
         if self.path:
+            self.get_current()
+            self.get_ids()
             self.prompt = 'gsh@{}> '.format('/' + '/'.join(self.path))
         else:
+            self.current = None
             self.prompt = 'gsh> '
 
     def complete_cd(self, text, line, begidx, endidx):
@@ -102,23 +140,25 @@ class Gsh(CmdBase):
                 pp(res)
 
     def complete_ls(self, text, line, begidx, endidx):
-        res = []
-        if len(self.path) >= 2:
-            # FIXME:
-            # adding an extra blank entry in order to display '@' entries
-            res.extend(['', '@addons', '@ids', '@items', '@sharing'])
-            try:
-                res.extend(self.g.get_request('{}/{}/{}'.format(
-                    self.g.server, '/'.join(self.path), '@ids')))
-            except Exception:  # noqa
-                res.remove('@ids')
-                res.remove('@items')
+        # FIXME:
+        # adding an extra blank entry in order to display '@' entries
+        res = ['']
+        if self.current:
+            res.extend([
+                e
+                for e in getattr(self.current, 'endpoints', {}).keys()
+                if e.startswith('@')])
+        if self.ids:
+            res.extend(self.ids)
         return res
 
     @property
+    def current_path(self):
+        return '/'.join(self.path)
+
+    @property
     def current_url(self):
-        path = '/'.join(self.path)
-        return f'{self.g.server}/{path}'
+        return f'{self.g.server}/{self.current_path}'
 
     def do_create(self, arg):
         '''Create a new child resource by providing json as argument'''

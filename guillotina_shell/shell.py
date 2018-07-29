@@ -114,6 +114,36 @@ class Gsh(CmdBase):
                 res.remove('@items')
         return res
 
+    @property
+    def current_url(self):
+        path = '/'.join(self.path)
+        return f'{self.g.server}/{path}'
+
+    def do_create(self, arg):
+        try:
+            res = self.g.post_request(self.current_url, data=arg)
+        except Exception as e:
+            self.handle_request_exceptions(e)
+        else:
+            pp(res)
+
+    def do_patch(self, arg):
+        try:
+            res = self.g.patch_request(self.current_url, data=arg)
+        except Exception as e:
+            self.handle_request_exceptions(e)
+        else:
+            pp(res)
+
+    def do_delete(self, arg):
+        try:
+            res = self.g.delete_request(self.current_url)
+        except Exception as e:
+            self.handle_request_exceptions(e)
+        else:
+            self.do_cd('..')
+            pp(res)
+
     def handle_request_exceptions(self, exception):
         if isinstance(exception, AlreadyExistsException):
             print(error + 'Already  exists')

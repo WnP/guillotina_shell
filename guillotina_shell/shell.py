@@ -21,9 +21,6 @@ def join(*args):
     return '/'.join(args)
 
 
-error = '\033[0;31mError\033[0m: '
-
-
 class Gsh(CmdBase):
     intro = "Welcome to guillotina shell. Type help or ? to list commands.\n"
     prompt = 'gsh> '
@@ -50,8 +47,8 @@ class Gsh(CmdBase):
             try:
                 self.current = Node(self.current_url, self.g)
             except NotExistsException:
-                print(
-                    error + 'Please install guillotina-swagger onto your '
+                self.print_error(
+                    'Please install guillotina-swagger onto your '
                     'application in order to improve your user experience')
             except Exception as e:
                 self.handle_exception(e)
@@ -59,8 +56,8 @@ class Gsh(CmdBase):
             try:
                 self.current = Resource(self.current_url, self.g)
             except NotExistsException:
-                print(
-                    error + 'Please install guillotina-swagger onto your '
+                self.print_error(
+                    'Please install guillotina-swagger onto your '
                     'application in order to improve your user experience')
             except Exception as e:
                 self.handle_exception(e)
@@ -88,7 +85,7 @@ class Gsh(CmdBase):
                     if len(self.path):
                         self.path = self.path[:-1]
                     else:
-                        print(error + 'Invalid path')
+                        self.print_error('Invalid path')
                 elif p != '.':
                     path.append(p)
 
@@ -137,7 +134,7 @@ class Gsh(CmdBase):
         '''Display current resource tree node'''
         if arg == '@addons':
             if len(self.path) < 2:
-                print(error + 'Not a container path')
+                self.print_error('Not a container path')
             else:
                 self.g.set_container(self.path[1], db=self.path[0])
                 pp(self.g.container.list_addons())
@@ -193,24 +190,27 @@ class Gsh(CmdBase):
             self.do_cd('..')
             pp(res)
 
+    def print_error(self, error):
+        print('\033[0;31mError\033[0m: ' + error)
+
     def handle_exception(self, exception):
         print_trace = False
         if isinstance(exception, AlreadyExistsException):
-            print(error + 'Already  exists')
+            self.print_error('Already  exists')
         elif isinstance(exception, NotExistsException):
-            print(error + 'Does not exists')
+            self.print_error('Does not exists')
         elif isinstance(exception, UnauthorizedException):
-            print(error + 'Unauthorized')
+            self.print_error('Unauthorized')
         elif isinstance(exception, RetriableAPIException):
             print_trace = True
-            print(error + 'Retriable API')
+            self.print_error('Retriable API')
         elif isinstance(exception, LoginFailedException):
-            print(error + 'Login failed')
+            self.print_error('Login failed')
         elif isinstance(exception, RefreshTokenFailedException):
-            print(error + 'Refresh token failed')
+            self.print_error('Refresh token failed')
         elif isinstance(exception, ConnectionError):
             print_trace = True
-            print(error + 'Connection error')
+            self.print_error('Connection error')
         else:
             print_trace = True
         if print_trace:

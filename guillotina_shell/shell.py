@@ -47,14 +47,17 @@ class Gsh(CmdBase):
     def current_path(self):
         return join(*self.path)
 
-    @property
-    def current_url(self):
-        return f'{self.g.server}/{self.current_path}'
+    def current_url(self, path=''):
+        if not path:
+            path = self.current_path
+        elif not path.startswith('/'):
+            path = join(self.current_path, path)
+        return f'{self.g.server}/{path}'
 
     def get_current(self):
         if len(self.path) <= 2:
             try:
-                self.current = Node(self.current_url, self.g)
+                self.current = Node(self.current_url(), self.g)
             except NotExistsException:
                 self.print_error(
                     'Please install guillotina-swagger onto your '
@@ -63,7 +66,7 @@ class Gsh(CmdBase):
                 self.handle_exception(e)
         if len(self.path) > 2:
             try:
-                self.current = Resource(self.current_url, self.g)
+                self.current = Resource(self.current_url(), self.g)
             except NotExistsException:
                 self.print_error(
                     'Please install guillotina-swagger onto your '
@@ -189,7 +192,8 @@ class Gsh(CmdBase):
         if args is None:
             return
         try:
-            res = self.g.post_request(self.current_url, data=args.data)
+            res = self.g.post_request(
+                self.current_url(args.path), data=args.data)
         except Exception as e:
             self.handle_exception(e)
         else:
@@ -204,7 +208,8 @@ class Gsh(CmdBase):
         if args is None:
             return
         try:
-            res = self.g.patch_request(self.current_url, data=args.data)
+            res = self.g.patch_request(
+                self.current_url(args.path), data=args.data)
         except Exception as e:
             self.handle_exception(e)
         else:
@@ -219,7 +224,7 @@ class Gsh(CmdBase):
         if args is None:
             return
         try:
-            res = self.g.delete_request(self.current_url)
+            res = self.g.delete_request(self.current_url(args.path))
         except Exception as e:
             self.handle_exception(e)
         else:

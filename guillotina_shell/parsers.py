@@ -63,6 +63,10 @@ create_parser = GshCommandParser(
     description='Create a new child resource by providing json as argument',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+create_parser.add_argument(
+    'path', type=str, default='', nargs='?',
+    help='Alternative path, could be relative or absolute')
+
 create_parser.add_argument('data', help='JSON data')
 
 # delete
@@ -72,11 +76,19 @@ delete_parser = GshCommandParser(
     description='Delete current resource and "cd" to parent',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+delete_parser.add_argument(
+    'path', type=str, default='', nargs='?',
+    help='Alternative path, could be relative or absolute')
+
 # update
 
 update_parser = GshCommandParser(
     prog="update",
     description='Update current resource by providing json as argument',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+update_parser.add_argument(
+    'path', type=str, default='', nargs='?',
+    help='Alternative path, could be relative or absolute')
 
 update_parser.add_argument('data', help='JSON data')

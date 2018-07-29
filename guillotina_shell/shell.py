@@ -16,6 +16,11 @@ from guillotina_client.exceptions import (
 from .cmd_base import CmdBase
 from .node import Node
 
+
+def join(*args):
+    return '/'.join(args)
+
+
 error = '\033[0;31mError\033[0m: '
 
 
@@ -31,6 +36,14 @@ class Gsh(CmdBase):
         self.ids = []
         self.get_current()
         return super().__init__(*args, **kwargs)
+
+    @property
+    def current_path(self):
+        return join(*self.path)
+
+    @property
+    def current_url(self):
+        return f'{self.g.server}/{self.current_path}'
 
     def get_current(self):
         if len(self.path) <= 2:
@@ -56,7 +69,7 @@ class Gsh(CmdBase):
         if self.current and '@ids' in self.current.endpoints:
             try:
                 ids = self.g.get_request('{}/{}/{}'.format(
-                    self.g.server, '/'.join(self.path), '@ids'))
+                    self.g.server, self.current_path, '@ids'))
             except Exception:  # noqa
                 self.ids = []
             else:
@@ -87,7 +100,7 @@ class Gsh(CmdBase):
         if self.path:
             self.get_current()
             self.get_ids()
-            self.prompt = 'gsh@{}> '.format('/' + '/'.join(self.path))
+            self.prompt = 'gsh@{}> '.format('/' + self.current_path)
         else:
             self.current = None
             self.prompt = 'gsh> '
@@ -118,7 +131,7 @@ class Gsh(CmdBase):
             current_path.extend(path)
 
         return self.g.get_request('{}/{}/{}'.format(
-                self.g.server, '/'.join(current_path), '@ids'))
+                self.g.server, join(*current_path), '@ids'))
 
     def do_ls(self, arg):
         '''Display current resource tree node'''
@@ -133,7 +146,7 @@ class Gsh(CmdBase):
             path.extend(arg.split('/'))
             try:
                 res = self.g.get_request('{}/{}'.format(
-                    self.g.server, '/'.join(path)))
+                    self.g.server, join(*path)))
             except Exception as e:
                 self.handle_exception(e)
             else:
@@ -151,14 +164,6 @@ class Gsh(CmdBase):
         if self.ids:
             res.extend(self.ids)
         return res
-
-    @property
-    def current_path(self):
-        return '/'.join(self.path)
-
-    @property
-    def current_url(self):
-        return f'{self.g.server}/{self.current_path}'
 
     def do_create(self, arg):
         '''Create a new child resource by providing json as argument'''

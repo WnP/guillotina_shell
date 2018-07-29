@@ -1,4 +1,5 @@
 import traceback
+import shlex
 from pprint import pprint as pp
 
 from requests.exceptions import ConnectionError
@@ -15,6 +16,7 @@ from guillotina_client.exceptions import (
 
 from .cmd_base import CmdBase
 from .node import Node
+from .parsers import endpoint_parser
 
 
 def join(*args):
@@ -189,6 +191,34 @@ class Gsh(CmdBase):
         else:
             self.do_cd('..')
             pp(res)
+
+    def do_endpoint(self, arg):
+        args = endpoint_parser.parse_args(shlex.split(arg))
+        if args is None:
+            return
+        if not args.name:
+            for name, methods in self.current.endpoints.items():
+                print(f'- {name}:')
+                for verb, description in methods.summary.items():
+                    print(f'    - {verb}: {description}')
+            return
+        if args.http_method == 'get':
+            self.do_ls(args.name)
+        elif args.http_method == 'post':
+            self.do_create(f'{args.name} {args.data}')
+        elif args.http_method == 'patch':
+            self.do_update(f'{args.name} {args.data}')
+        elif args.http_method == 'delete':
+            self.do_delete(args.name)
+        elif args.help:
+            self.help_endpoint()
+
+    def do_ep(self, arg):
+        '''Alias for endpoint command'''
+        return self.do_endpoint(arg)
+
+    def help_endpoint(self):
+        endpoint_parser.print_help()
 
     def print_error(self, error):
         print('\033[0;31mError\033[0m: ' + error)

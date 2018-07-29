@@ -39,11 +39,6 @@ Set environment variables using GSH_ prefix
 
 Once logged use `cd` and `ls` commands, both provide tab completion.
 
-## TODO
-
-ATM the shell is readonly, it could be nice to be able to create, update and
-delete entries. But IMHO this is just the visible part of the iceberg.
-
 ## Contribute
 
 Issues and PRs are welcome!

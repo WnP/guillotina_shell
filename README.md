@@ -18,26 +18,32 @@ pip install .
 
 ## Usage
 
-Run the newly installed `gsh` command:
-
 ```
-gsh -h
+$ gsh -h
 
-usage: gsh [-h] [--url URL] [-u USER] [-p PASSWORD]
+usage: gsh [-h] [--url URL] [-u USER] [-p PASSWORD] [-d]
 
 gsh: The Guillotina shell
 
 optional arguments:
   -h, --help            show this help message and exit
-  --url URL             Guillotina url (default: http://localhost:8080)
+  --url URL             Guillotina url (default: http://localhost:8083)
   -u USER, --user USER  Basic auth user (default: root)
   -p PASSWORD, --password PASSWORD
                         Basic auth password (default: root)
+  -d, --debug           Debug mode (default: False)
 
 Set environment variables using GSH_ prefix
 ```
 
-Once logged use `cd` and `ls` commands, both provide tab completion.
+Available commands:
+
+- `?` or `help`: to display all available commands, pass command name as argument to display command help.
+- `ls`: display node content (tab completion available).
+- `cd`: change resource tree location (tab completion available).
+- `create`: create new resource.
+- `update`: update resource.
+- `delete`: delete resource.
 
 ## Contribute
 

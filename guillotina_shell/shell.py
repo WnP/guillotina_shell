@@ -1,5 +1,7 @@
 import traceback
 import shlex
+import pdb
+import sys
 from pprint import pprint as pp
 
 from requests.exceptions import ConnectionError
@@ -285,10 +287,12 @@ class Gsh(CmdBase):
             self.print_error('Connection error')
         else:
             print_trace = True
-        if print_trace:
+        if print_trace or self.config.debug:
             formatted_lines = traceback.format_exc().splitlines()
             if self.config.debug:
                 for line in formatted_lines:
                     print(line)
+                _, _, tb = sys.exc_info()
+                pdb.post_mortem(tb)
             else:
                 print(formatted_lines[-1])

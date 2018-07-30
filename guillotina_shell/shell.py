@@ -2,7 +2,7 @@ import traceback
 import shlex
 import pdb
 import sys
-from pprint import pprint as pp
+from pprint import pprint
 
 from requests.exceptions import ConnectionError
 from guillotina_client.client import BasicAuthClient
@@ -160,7 +160,7 @@ class Gsh(CmdBase):
                 self.print_error('Not a container path')
             else:
                 self.g.set_container(self.path[1], db=self.path[0])
-                pp(self.g.container.list_addons())
+                pprint(self.g.container.list_addons())
         else:
             path = self.path[:]
             path.extend(args.path.split('/'))
@@ -170,7 +170,7 @@ class Gsh(CmdBase):
             except Exception as e:
                 self.handle_exception(e)
             else:
-                pp(res)
+                pprint(res)
 
     def help_ls(self):
         ls_parser.print_help()
@@ -199,7 +199,7 @@ class Gsh(CmdBase):
         except Exception as e:
             self.handle_exception(e)
         else:
-            pp(res)
+            pprint(res)
 
     def help_create(self):
         create_parser.print_help()
@@ -215,7 +215,7 @@ class Gsh(CmdBase):
         except Exception as e:
             self.handle_exception(e)
         else:
-            pp(res)
+            pprint(res)
 
     def help_update(self):
         update_parser.print_help()
@@ -231,7 +231,7 @@ class Gsh(CmdBase):
             self.handle_exception(e)
         else:
             self.do_cd('..')
-            pp(res)
+            pprint(res)
 
     def help_delete(self):
         delete_parser.print_help()
